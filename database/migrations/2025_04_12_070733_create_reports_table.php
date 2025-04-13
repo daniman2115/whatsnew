@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('reporter_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('reporter_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('video_id')->constrained()->onDelete('cascade');
             $table->enum('reason', [
                 'misinformation',

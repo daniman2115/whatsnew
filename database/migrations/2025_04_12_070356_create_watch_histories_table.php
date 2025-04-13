@@ -21,7 +21,7 @@ return new class extends Migration
             
             // Composite unique constraint - one record per user-video pair
             $table->unique(['user_id', 'video_id']);
-            
+
             // Indexes for performance
             $table->index('user_id');
             $table->index('video_id');

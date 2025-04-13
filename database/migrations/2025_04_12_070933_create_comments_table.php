@@ -18,11 +18,12 @@ return new class extends Migration
             $table->text('content');
             $table->enum('status', ['active', 'flagged', 'removed'])->default('active');
 
-            $table->timestamps();
 
             $table->index('video_id');
             $table->index('status');
             $table->index(['user_id', 'video_id']);
+            $table->timestamps();
+
         });
     }
 
