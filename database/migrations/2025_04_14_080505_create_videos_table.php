@@ -27,7 +27,6 @@ return new class extends Migration
             $table->boolean('allow_likes')->default(true);
             $table->boolean('allow_comments')->default(true);
             $table->boolean('allow_shares')->default(true);
-            $table->boolean('allow_likes');
             $table->timestamps();
         });
     }

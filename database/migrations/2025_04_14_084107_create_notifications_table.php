@@ -29,7 +29,6 @@ return new class extends Migration
             $table->string('thumbnail_url', 255)->nullable();       
             $table->boolean('is_read')->default(false);       
             $table->boolean('email_sent')->default(false);         
-            $table->boolean('is_read')->default(false);       
             $table->timestamps();
 
             // Indexes for performance
