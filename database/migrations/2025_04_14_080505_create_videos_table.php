@@ -16,11 +16,16 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');     
             $table->string('title', 255);       
             $table->text('description')->nullable();
-            $table->string('video_url', 255);
+            $table->string('video_url', 255)->nullable();
+
+            $table->string('file');
+            $table->string('name');
+
+
             $table->string('thumbnail_url', 255)->nullable();
-            $table->integer('duration_seconds');
+            $table->integer('duration_seconds')->nullable();
             $table->boolean('is_premium')->default(false);
-            $table->float('credibility_score');
+            $table->float('credibility_score')->nullable();
             $table->timestamp('last_credibility_check')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->onDelete('set null');

@@ -273,5 +273,8 @@
         @if (Route::has('login'))
             <div class="h-14.5 hidden lg:block"></div>
         @endif
+
+
+        <a style="color : white; background:blue; margin-top: 10px" class="btn btn-success" href="{{route('uploadpage')}}">Upload</a>
     </body>
 </html>

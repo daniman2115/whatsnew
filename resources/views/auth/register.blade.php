@@ -13,7 +13,7 @@
         <input type="email" name = "email" id="email" placeholder="Enter Email">
         <input type="password" name = "password" id="password" placeholder="Enter password">
         <input type="password" name="password_confirmation" placeholder="Confirm Password" required>
-        
+        <input type="text" name="username" id="username" placeholder="Enter username">
         <select name="user_type" id="user_type" required>
         <option value="news_enthusiast">News Enthusiast</option>
         <option value="content_creator">Content Creator</option>

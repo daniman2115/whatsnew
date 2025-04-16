@@ -17,6 +17,21 @@
             margin:  0 auto;
             padding: 20px;
         }
+        button{
+            background-color: #8eabcf;
+            border: none;
+            color:black;
+            padding: 10px 5px;
+            border-radius: 10px;
+            display: block;
+            margin-top: 10px;
+            
+        }
+
+        button:hover{
+            background-color: hsla(213, 40%, 68%, 0.884);
+
+        }
         h1{
             color:#333;
             text-align: center;
@@ -41,6 +56,9 @@
 
             <em class="icon ni ni-signout"></em><span>Sign out</span>
         </a>
+
+        <button>Upload Video</button>
+
         </div>
 
     </div>

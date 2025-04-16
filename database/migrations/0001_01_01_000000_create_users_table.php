@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('google_id')->nullable();
             $table->string('password');
-            $table->string('username', 255)->unique()->nullable();
+            $table->string('username', 255)->unique();
             $table->string('email', 255)->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->enum('user_type', ['news_enthusiast', 'content_creator', 'admin'])->default('news_enthusiast');

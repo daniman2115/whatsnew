@@ -36,13 +36,17 @@ public function register(Request $request)
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'username' => 'required|string|min:8|unique:users',
             'user_type' => 'required|in:news_enthusiast,content_creator,admin'
+
         ]);
 
         $user = new User();
              $user->name =  $request->name;
              $user->email =  $request->email;
              $user->password =  Hash::make($request->password);
+             $user->username = $request->username;
+
              $user->user_type =  $request->user_type;
              $data=$user->save();
              if($data){
