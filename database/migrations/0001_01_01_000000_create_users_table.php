@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('username', 255)->unique();
             $table->string('name');
+            $table->string('google_id')->nullable();
+            $table->string('password');
+            $table->string('username', 255)->unique()->nullable();
             $table->string('email', 255)->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
             $table->enum('user_type', ['news_enthusiast', 'content_creator', 'admin'])->default('news_enthusiast');
             $table->enum('account_tier', ['free', 'premium'])->nullable();
             $table->string('profile_picture', 255)->nullable();
@@ -51,5 +52,6 @@ return new class extends Migration
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+
     }
 };

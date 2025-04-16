@@ -22,24 +22,24 @@ class SignupController extends Controller
 
     // Handle registration
     public function register(Request $request)
-    {
-        $request->validate([
-            'username' => 'required|string|max:255|unique:users',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'user_type' => 'required|in:news_enthusiast,content_creator'
-        ]);
+{
+    $request->validate([
+        'username' => 'required|string|max:255|unique:users',
+        'email' => 'required|email|unique:users',
+        'password' => 'required|string|min:8|confirmed',
+        'user_type' => 'required|in:news_enthusiast,content_creator'
+    ]);
 
-        $user = User::create([
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'user_type' => $request->user_type
-        ]);
+    $user = User::create([
+        'username' => $request->username,
+        'name' => $request->username, // or add a name field to your form
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'user_type' => $request->user_type
+    ]);
 
-        event(new Registered($user)); // Trigger email verification
-        auth()->login($user); // Auto-login
+    event(new Registered($user));
 
-        return redirect('/')->with('success', 'Account created!');
-    }
+    return redirect()->route('verification.notice');
+}
 }
