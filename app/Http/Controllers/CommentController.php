@@ -3,47 +3,32 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Models\Video;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function comment(Video $video, Request $request)
     {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Comment $comment)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Comment $comment)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Comment $comment)
-    {
-        //
+        $userId = 1;
+    
+        $request->validate([
+            'comment' => 'required|string|max:500'
+        ]);
+    
+        // Create comment
+        $comment = $video->comments()->create([
+            'user_id' => $userId,
+            'comment' => $request->comment
+        ]);
+    
+        // Increment comment count
+        $video->increment('comment_count');
+    
+        return response()->json([
+            'message' => 'Comment added successfully',
+            'comment_count' => $video->comment_count,
+            'comment' => $comment
+        ]);
     }
 }

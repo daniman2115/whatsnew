@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,8 +17,13 @@ class FollowFactory extends Factory
      */
     public function definition(): array
     {
+        $follower = User::inRandomOrder()->first();
+        $following = User::where('id', '!=', $follower->id)->inRandomOrder()->first();
+
         return [
-            //
+            'follower_id' => $follower->id,
+            'following_id' => $following->id,
+            'created_at' => now(),
         ];
     }
 }

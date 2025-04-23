@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthenticationController;
 // use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\UploadController;
+use App\Http\Controllers\VideoController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -52,14 +53,12 @@ Route::get('/reset-password/{token}', [AuthentController::class, 'showResetPassw
 Route::post('/reset-password', [AuthentController::class, 'submitResetPasswordForm'])->name('auth.submitresetpassword');
 
 
-// Route::get('/upload', [UploadController::class,"upload"])->name("upload");
-// Route::post('/upload', [UploadController::class,"uploadPost"])->name("upload.post");
 
 
 
-Route::get('/upload', [PageController::class,"index"]);
+Route::get('/upload', [VideoController::class,"index"]);
 
-Route::get('/uploadpage', [PageController::class,"uploadpage"])->name('uploadpage');
+Route::get('/uploadpage', [VideoController::class,"uploadpage"])->name('uploadpage');
 
 
-Route::post('/uploadproduct', [PageController::class,"store"])->name('uploadproduct');
+Route::post('/uploadproduct', [VideoController::class,"store"])->name('uploadproduct');

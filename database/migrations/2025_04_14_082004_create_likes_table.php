@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('likes', function (Blueprint $table) {
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('video_id')->constrained()->cascadeOnDelete();
-            $table->timestamp('created_at')->useCurrent();       
+            $table->timestamps();      
             // Composite primary key to prevent duplicate likes
-            $table->primary(['user_id', 'video_id']);
+            $table->unique(['user_id', 'video_id']);
             
             // Index for faster queries (optional)
             $table->index('video_id'); // For counting likes per video

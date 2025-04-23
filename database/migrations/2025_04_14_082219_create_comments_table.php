@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('video_id')->constrained()->cascadeOnDelete();
-            $table->text('content');
-            $table->enum('status', ['active', 'flagged', 'removed'])->default('active');
+            $table->text('comment');
+            $table->enum('status', ['active', 'flagged', 'removed'])->default('active')->nullable();
 
 
             $table->index('video_id');

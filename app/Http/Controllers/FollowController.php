@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Follow;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class FollowController extends Controller
@@ -26,11 +27,22 @@ class FollowController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Follow $follow)
+    public function showFollowers($id)
     {
-        //
+        $user = User::find($id);
+        $followers = $user->followers()->get();
+
+        return response()->json($followers);
     }
 
+
+    public function showFollowing($id)
+    {
+        $user = User::find($id);
+        $following = $user->following()->get();
+
+        return response()->json($following);
+    }
     /**
      * Update the specified resource in storage.
      */

@@ -23,6 +23,8 @@ return new class extends Migration
             $table->enum('account_tier', ['free', 'premium'])->nullable();
             $table->string('profile_picture', 255)->nullable();
             $table->text('bio')->nullable();
+            $table->unsignedInteger('followers_count')->default(0);
+            $table->unsignedInteger('following_count')->default(0);
             $table->string('language', 10)->nullable();
             $table->rememberToken();
             $table->timestamps();

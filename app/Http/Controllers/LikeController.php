@@ -3,47 +3,26 @@
 namespace App\Http\Controllers;
 
 use App\Models\Like;
+use App\Models\Video;
 use Illuminate\Http\Request;
 
 class LikeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
+    public function like(Video $video){
+        $userId = 1;
+        if($video->likes()->where('user_id', $userId)->exists()) {
+        return response()->json(['message' => 'Already liked'], 409);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+    $video->likes()->create(['user_id' => $userId]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Like $like)
-    {
-        //
-    }
+    $video->update([
+        $video->increment('like_count')
+    ]);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Like $like)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Like $like)
-    {
-        //
-    }
+    return response()->json([
+        'message' => 'Video liked successfully',
+        'likes_count' => $video->like_count
+    ]);
+}
 }

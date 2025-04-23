@@ -1,25 +1,16 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
-use Exception;
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Otp;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Contracts\Encryption\DecryptException;
-use Laravel\Sanctum\PersonalAccessToken;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use Carbon\Carbon; 
-use App\Models\Userdevice;
 use Mail;
 use DB;
-use Hash;
+use Illuminate\Support\Facades\Hash;
 use Socialite;
-use App\Mail\SendOtpCodeMail;
 use Illuminate\Support\Facades\session;
 
 
@@ -41,19 +32,22 @@ public function register(Request $request)
 
         ]);
 
-        $user = new User();
-             $user->name =  $request->name;
-             $user->email =  $request->email;
-             $user->password =  Hash::make($request->password);
-             $user->username = $request->username;
 
-             $user->user_type =  $request->user_type;
-             $data=$user->save();
-             if($data){
-                return redirect()->route('login')->with('success','registered successfully');
-             }else{
-                return back()->with('error','somethin went wrong');
-             }
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'username' => $request->username,
+            'user_type' => $request->user_type
+        ]);
+
+             return response()->json([
+                'message' => 'User registered successfully!',
+                'user' => $user
+            ], 201);
+        
+
+       
 
         // Log the user in after registration
         // Auth::login($user);
@@ -70,12 +64,19 @@ public function register(Request $request)
         'email' => 'required|email',
         'password' => 'required',
     ]);
-    $auth = $request->only('email','password');
-    if(Auth::attempt($auth)){
-      return redirect()->route('dashboard')->with('success','registered successfully');
-    }else{
-      return back()->with('error', 'something went wrong'); 
+    $user = User::where('email', $request->email)->first();
+   
+    if (!$user || !Hash::check($request->password, $user->password)) {
+        throw ValidationException::withMessages([
+            'email' => ['Invalid credentials.'],
+        ]);
     }
+
+    return response()->json([
+        "message" => "loged in successfully!",
+        'token' => $user->createToken('video-news-token')->plainTextToken,
+        'user' => $user,
+    ]);
 
     
  }
@@ -87,19 +88,24 @@ public function register(Request $request)
 
 
 public function logout(Request $request){
-    session::flush();
-    Auth::logout();
-    return redirect()->route('login')->with('success','registered successfully');
+    
+        $request->user()->currentAccessToken()->delete();
+        return response()->json(['message' => 'Logged out successfully!']);
+    
 
 }
 
+    // Get authenticated user data
+    public function user(Request $request)
+    {
+        return response()->json($request->user());
+    }
 
 
 
 public function showForgetPasswordForm(Request $request){
     return view('auth.forgetPassword');
 }
-
 
 
 public function submitForgetPasswordForm(Request $request)
@@ -114,8 +120,6 @@ public function submitForgetPasswordForm(Request $request)
             'created_at' =>Carbon::now()
         ]);
 
-
-
             Mail::send('auth.email', ['token' => $token], function($message) use($request){
             $message->to($request->email);
             $message->subject('Reset Password');
@@ -126,11 +130,9 @@ public function submitForgetPasswordForm(Request $request)
 
 }
 
-
 public function showResetPasswordForm($token){
     return view('auth.resetPassword', ['token' => $token]);
 }
-
 
 public function submitResetPasswordForm(Request $request)
     {
@@ -158,7 +160,6 @@ public function submitResetPasswordForm(Request $request)
         return redirect()->route('login');
 
     }
-
 
 
 }
