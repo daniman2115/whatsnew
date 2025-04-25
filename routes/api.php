@@ -20,21 +20,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/forgot-password', [AuthentController::class, 'submitForgetPasswordForm'])->name('auth.submitforgetpassword');
 
         Route::post('/reset-password', [AuthentController::class, 'submitResetPasswordForm'])->name('auth.submitresetpassword');
-        Route::get('/feed/following/{id}', [VideoController::class, 'following']);
-
-        Route::post('/upload', [VideoController::class,"store"]);
-
+        
+        Route::post('/upload', [VideoController::class,"uploadChunk"]);
+        
         Route::get('/list', [VideoController::class,"index"]);
-
+        
         Route::get('/show/{video}', [VideoController::class,"show"]);
 
-
-
+        
         Route::post('/like/{video}', [LikeController::class,"like"]);
-
+        
         Route::post('/comment/{video}', [CommentController::class,"comment"]);
-
+        
         Route::get('/feed/for-you', [VideoController::class, 'forYou']);
+        Route::get('/feed/following/{id}', [VideoController::class, 'following']);
         Route::get('/feed/discover', [VideoController::class, 'discover']);
 
         Route::get('/profile/{id}', [ProfileController::class,"showProfile"]);
