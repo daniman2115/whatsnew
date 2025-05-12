@@ -41,6 +41,11 @@ return [
          'client_id' => env('GOOGLE_CLIENT_ID'),
          'client_secret'=> env('GOOGLE_CLIENT_SECRET'),
          'redirect' => env("GOOGLE_REDIRECT")
-    ]
+    ],
 
+
+ 'flask' => [
+    'api_key' => env('FLASK_API_KEY'),
+    'endpoint' => env('FLASK_ENDPOINT'),
+],
 ];

@@ -4,13 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Video;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Str;
+use App\Services\HuggingFaceService;
+use App\Services\FFmpegService;
+
 
 class VideoController extends Controller
 {
+    protected $ffmpegService;
+
+    public function __construct(FFmpegService $ffmpegService)
+    {
+        $this->ffmpegService = $ffmpegService;
+    }
+
+
     /**
      * Display a listing of the resource.
      */
@@ -77,90 +91,148 @@ class VideoController extends Controller
 
 
     public function uploadChunk(Request $request)
-    {
-        $chunk = $request->file('file');
-        $filename = $request->input('filename');
-        $title = $request->input('title');
-        $description = $request->input('description');
-        $chunkIndex = $request->input('chunk');
-        $totalChunks = $request->input('totalChunks');
-        $location = $request->input('location');
-        // Sanitize location to prevent directory traversal
-        $location = str_replace(['..', '/'], '', $location);
-        $tempDir = storage_path('app/temp_chunks/' . $filename);
-        $finalDir = storage_path('app/public/uploads/' . $location);
-        $finalPath = $finalDir . '/' . $filename;
+{
+    $chunk = $request->file('file');
+    $filename = $request->input('filename');
+    $title = $request->input('title');
+    $description = $request->input('description');
+    $chunkIndex = $request->input('chunk');
+    $totalChunks = $request->input('totalChunks');
+    $location = $request->input('location');
+    // Sanitize location to prevent directory traversal
+    $location = str_replace(['..', '/'], '', $location);
+    $tempDir = storage_path('app/temp_chunks/' . $filename);
+    $finalDir = storage_path('app/public/uploads/' . $location);
+    $finalPath = $finalDir . '/' . $filename;
 
     // Create temp directory if it doesn't exist
     if (!file_exists($tempDir) && !mkdir($tempDir, 0777, true) && !is_dir($tempDir)) {
         return response()->json(['message' => 'Failed to create temp directory'], 500);
     }
-        $chunk->move($tempDir, $chunkIndex);
+    $chunk->move($tempDir, $chunkIndex);
 
-       // Check if all chunks are uploaded
-        $files = scandir($tempDir);
-        if (count($files) - 2 === (int) $totalChunks) { // Ignore '.' and '..'
-            
-            // Ensure the final directory exists
-            if (!file_exists($finalDir) && !mkdir($finalDir, 0777, true) && !is_dir($finalDir)) {
-                return response()->json(['message' => 'Failed to create uploads directory'], 500);
-            }
-                   
-            // Open the final file path for writing
-            if (!is_dir($finalDir)) {
-                return response()->json(['message' => 'Uploads directory does not exist'], 500);
-            }
-
-            // Open the final file path for writing
-            $output = fopen($finalPath, 'wb');
-            if (!$output) {
-                return response()->json(['message' => 'Failed to open final file path'], 500);
-            }
-
-            // Combine chunks into one file
-            for ($i = 0; $i < $totalChunks; $i++) {
-                $chunkPath = $tempDir . '/' . $i;
-                $chunkFile = fopen($chunkPath, 'rb');
-                if ($chunkFile) {
-                    stream_copy_to_stream($chunkFile, $output);
-                    fclose($chunkFile);
-                } else {
-                    return response()->json(['message' => 'Failed to open chunk file'], 500);
-                }
-            }
-
-            fclose($output);
-
-            $video = new Video();
-            $video->user_id = 1; // Use authenticated user if available
-            $video->name = $filename;
-            $video->title = $title;
-            $video->description = $description;
-            $video->file = $filename;
-            $video->path = 'uploads/' . $location . '/'. $filename;
-            $video->url = 'http://127.0.0.1:8000/storage/app/uploads/' . $location . '/'. $filename;
-            $video->save();
-
-            // Clean up temporary chunks and directory
-            array_map('unlink', glob("$tempDir/*"));
-            rmdir($tempDir);
-            return response()->json([
-                'message' => 'File uploaded successfully!',
-                'file_path' => 'uploads/' . $location . '/'. $filename
-            ], 200);
+    // Check if all chunks are uploaded
+    $files = scandir($tempDir);
+    if (count($files) - 2 === (int) $totalChunks) { // Ignore '.' and '..'
+        
+        // Ensure the final directory exists
+        if (!file_exists($finalDir) && !mkdir($finalDir, 0777, true) && !is_dir($finalDir)) {
+            return response()->json(['message' => 'Failed to create uploads directory'], 500);
+        }
+               
+        // Open the final file path for writing
+        if (!is_dir($finalDir)) {
+            return response()->json(['message' => 'Uploads directory does not exist'], 500);
         }
 
+        // Open the final file path for writing
+        $output = fopen($finalPath, 'wb');
+        if (!$output) {
+            return response()->json(['message' => 'Failed to open final file path'], 500);
+        }
 
+        // Combine chunks into one file
+        for ($i = 0; $i < $totalChunks; $i++) {
+            $chunkPath = $tempDir . '/' . $i;
+            $chunkFile = fopen($chunkPath, 'rb');
+            if ($chunkFile) {
+                stream_copy_to_stream($chunkFile, $output);
+                fclose($chunkFile);
+            } else {
+                return response()->json(['message' => 'Failed to open chunk file'], 500);
+            }
+        }
 
-        return response()->json(['message' => 'Chunk uploaded successfully.']);
+        fclose($output);
+
+        // Get the full URL to the video
+        $videoUrl = url('storage/uploads/'.$location.'/'.$filename);
+
+        // Call Flask API to get credibility score
+        $flaskApiUrl = env('FLASK_API_URL', 'http://localhost:5000/api/process-video');
+        $apiKey = env('FLASK_API_KEY');
+
+        try {
+            $response = Http::withHeaders([
+                'X-API-KEY' => $apiKey,
+                'Content-Type' => 'application/json',
+            ])->post($flaskApiUrl, [
+                'video_url' => $videoUrl,
+            ]);
+
+            $credibilityScore = null;
+            if ($response->successful()) {
+                $responseData = $response->json();
+                $credibilityScore = $responseData['credibility_score'] ?? null;
+            }
+        } catch (\Exception $e) {
+            // Log the error but continue with video creation
+            \Log::error("Failed to get credibility score: " . $e->getMessage());
+            $credibilityScore = null;
+        }
+
+        $video = new Video();
+        $video->user_id = 1; // Use authenticated user if available
+        $video->name = $filename;
+        $video->title = $title;
+        $video->description = $description;
+        $video->file = $filename;
+        $video->path = 'uploads/' . $location . '/'. $filename;
+        $video->url = $videoUrl;
+        
+        // Add credibility score if available
+        if ($credibilityScore !== null) {
+            $video->credibility_score = $credibilityScore;
+        }
+
+        $video->save();
+
+        // Clean up temporary chunks and directory
+        array_map('unlink', glob("$tempDir/*"));
+        rmdir($tempDir);
+        
+        return response()->json([
+            'message' => 'File uploaded successfully!',
+            'file_path' => 'uploads/' . $location . '/'. $filename,
+            'url' => $video->url,
+        ], 200);
     }
 
+    return response()->json(['message' => 'Chunk uploaded successfully.']);
+}
+//     private function processVideoWithFlask(Video $video)
+// {
+//     try {
+//         $client = new Client([
+//             'timeout' => 120,
+//             'connect_timeout' => 30,
+//             'verify' => false // Only for development!
+//         ]);
 
+//         $response = $client->post(config('services.flask.api_url').'/api/process-video', [
+//             'json' => [
+//                 'video_url' => $video->url,
+//                 'video_id' => $video->id
+//             ],
+//             'headers' => [
+//                 'X-API-KEY' => config('services.flask.api_key'),
+//                 'Accept' => 'application/json'
+//             ]
+//         ]);
 
+//         $body = json_decode($response->getBody(), true);
+        
+//         if (!isset($body['status']) || $body['status'] !== 'success') {
+//             throw new \Exception("Flask API returned unsuccessful status");
+//         }
 
+//         return $body;
 
-
-
+//     } catch (\GuzzleHttp\Exception\RequestException $e) {
+//         Log::error("Flask connection failed: " . $e->getMessage());
+//         throw new \Exception("Video processing service unavailable");
+//     }
+// }
 
     /**
      * Display the specified resource.
@@ -270,7 +342,115 @@ class VideoController extends Controller
             'results' => $videos
         ]);
     }
-    
+
+
+
+    public function checkVideo($id, HuggingFaceService $hf)
+{
+    $video = Video::find($id);
+    $isFake = $hf->detectFakeNews($video->description);
+ 
+    if ($isFake){
+    return response()->json([
+      "message" => "This video is fake",
+    ]);
+}
+
+    else{
+        return response()->json([
+            "message" => "This video is real",
+        ]);
+    }
+}
+
+
+
+
+
+
+// public function generateThumbnail(Video $video)
+// {
+//     try {
+//         // Get the video path from the database record
+//         $videoPath = storage_path('app/public/' . $video->path);
+        
+//         // Set thumbnail paths
+//         $thumbnailDir = storage_path('app/public/thumbnails');
+//         $thumbnailFilename = $video->id . '_thumbnail.jpg';
+//         $thumbnailPath = $thumbnailDir . '/' . $thumbnailFilename;
+//         $relativeThumbnailPath = 'thumbnails/' . $thumbnailFilename;
+
+//         // Create directory if it doesn't exist
+//         if (!file_exists($thumbnailDir)) {
+//             mkdir($thumbnailDir, 0755, true);
+//         }
+
+//         // Generate thumbnail using FFmpegService
+//         $this->ffmpegService->extractThumbnail($videoPath, $thumbnailPath, 10);
+
+//         // Update the video record with thumbnail path
+//         $video->update(['thumbnail_path' => $relativeThumbnailPath]);
+
+//         return response()->json([
+//             'success' => true,
+//             'message' => 'Thumbnail generated successfully',
+//             'thumbnail_path' => $relativeThumbnailPath
+//         ]);
+
+//     } catch (\Exception $e) {
+//         return response()->json([
+//             'success' => false,
+//             'error' => 'Thumbnail generation failed',
+//             'message' => $e->getMessage(),
+//             'details' => [
+//                 'video_id' => $video->id,
+//                 'video_path' => $video->path ?? 'Not found',
+//                 'attempted_thumbnail_path' => $relativeThumbnailPath ?? 'Not generated'
+//             ]
+//         ], 500);
+//     }
+// }
+
+
+
+
+public function extractAudio($videoPath, $audioOutputPath, $format = 'mp3')
+{
+    if (!file_exists($videoPath)) {
+        throw new \Exception("Video file not found at: {$videoPath}");
+    }
+
+    try {
+        if (!is_dir(dirname($audioOutputPath))) {
+            mkdir(dirname($audioOutputPath), 0755, true);
+        }
+
+        $ffmpegPath = env('FFMPEG_PATH');
+        $command = sprintf(
+            '"%s" -i "%s" -vn -acodec libmp3lame -ab 192k "%s"',
+            $ffmpegPath,
+            $videoPath,
+            $audioOutputPath
+        );
+
+        exec($command, $output, $returnCode);
+
+        if ($returnCode !== 0 || !file_exists($audioOutputPath)) {
+            throw new \Exception("FFmpeg command failed: " . implode("\n", $output));
+        }
+
+        return true;
+    } catch (\Exception $e) {
+        Log::error("FFmpeg Audio Extraction Failed", [
+            'video_path' => $videoPath,
+            'audio_output_path' => $audioOutputPath,
+            'format' => $format,
+            'error' => $e->getMessage(),
+            'command_output' => $output ?? []
+        ]);
+        throw $e;
+    }
+}
 }
 
 

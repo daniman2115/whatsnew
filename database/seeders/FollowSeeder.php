@@ -4,15 +4,10 @@ namespace Database\Seeders;
 
 use App\Models\Follow;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class FollowSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $users = User::all();
@@ -22,21 +17,19 @@ class FollowSeeder extends Seeder
             $following = $users->where('id', '!=', $user->id)->random(rand(3, 10));
 
             foreach ($following as $followedUser) {
-                DB::table('follows')->updateOrInsert([
+                // Use Eloquent model instead of DB facade
+                Follow::firstOrCreate([
                     'follower_id' => $user->id,
                     'following_id' => $followedUser->id,
                 ]);
             }
         }
 
-        // ✅ Recalculate follower/following counts
+        // Recalculate counts using relationships
         foreach ($users as $user) {
-            $followersCount = DB::table('follows')->where('following_id', $user->id)->count();
-            $followingCount = DB::table('follows')->where('follower_id', $user->id)->count();
-
             $user->update([
-                'followers_count' => $followersCount,
-                'following_count' => $followingCount,
+                'followers_count' => $user->followers()->count(),
+                'following_count' => $user->following()->count(),
             ]);
         }
     }

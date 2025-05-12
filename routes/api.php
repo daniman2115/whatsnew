@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\AudioExtractionController;
 use App\Http\Controllers\AuthentController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\FollowController;
@@ -31,6 +32,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/like/{video}', [LikeController::class,"like"]);
         
         Route::post('/comment/{video}', [CommentController::class,"comment"]);
+
+        Route::post('/follow/{user}', [FollowController::class,"follow"]);
+        Route::post('/unfollow/{user}', [FollowController::class,"unfollow"]);
         
         Route::get('/feed/for-you', [VideoController::class, 'forYou']);
         Route::get('/feed/following/{id}', [VideoController::class, 'following']);
@@ -42,6 +46,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/profile/following/{id}', [FollowController::class,"showFollowing"]);
 
         Route::post('/videos/search', [VideoController::class, 'search']);
+
+
+        // Route::post('/check-fake-news/{id}', [VideoController::class, 'checkVideo']);
+
+        // Route::post('/recommend-videos', [VideoController::class, 'getRecommendedVideos']);
+
+        
+        // Route::post('/extractaudio', [VideoController::class, 'extractAudio']);
+
+        Route::post('/extract-audio', [AudioExtractionController::class, 'extractAudio']);
+
+Route::post('/videos/update-credibility', [VideoController::class, 'updateCredibility'])
+    ->middleware('auth:api');
         
 
 });

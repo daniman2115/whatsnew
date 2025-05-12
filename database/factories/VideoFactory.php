@@ -30,8 +30,10 @@ class VideoFactory extends Factory
             'title' => $this->faker->sentence(5),
             'name' => $this->faker->word,
             'description' => $this->faker->sentence(),
+            'transcribed_text' => $this->faker->sentence(),
             'url' => $this->faker->url(),
             'path' => $this->faker->word . '.mp4', // Assuming it's a video file
+            'thumbnail_path' => $this->faker->word . '.mp4', // Assuming it's a video file
             'file' => $this->faker->word . '.mp4', // Path or name of the video file
             'thumbnail_url' => $this->faker->imageUrl(200, 200, 'video'),
             'duration_seconds' => $this->faker->numberBetween(30, 600), // Video length between 30s and 10 minutes

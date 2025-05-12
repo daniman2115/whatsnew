@@ -16,9 +16,7 @@ class LikeController extends Controller
 
     $video->likes()->create(['user_id' => $userId]);
 
-    $video->update([
-        $video->increment('like_count')
-    ]);
+    $video->increment('like_count');
 
     return response()->json([
         'message' => 'Video liked successfully',

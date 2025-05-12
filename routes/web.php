@@ -62,3 +62,8 @@ Route::get('/uploadpage', [VideoController::class,"uploadpage"])->name('uploadpa
 
 
 Route::post('/uploadproduct', [VideoController::class,"store"])->name('uploadproduct');
+
+
+Route::get('/test-ffmpeg-path', function () {
+    return shell_exec('where ffmpeg');
+});

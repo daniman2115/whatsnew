@@ -22,11 +22,15 @@ class Video extends Model
         'name',
         'path',
         'title',
+        'thumbnail_path',
         'description',
         'url',
         'file',
         'bio',
-        'language'
+        'language',
+        'transcribed_text',
+        'credibility_score',
+        'last_credibility_check',
 
     ];
 

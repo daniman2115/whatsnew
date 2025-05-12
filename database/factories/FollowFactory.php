@@ -23,7 +23,8 @@ class FollowFactory extends Factory
         return [
             'follower_id' => $follower->id,
             'following_id' => $following->id,
-            'created_at' => now(),
+            'created_at' => $this->faker->dateTime(),
+            'updated_at' => $this->faker->dateTime()
         ];
     }
 }

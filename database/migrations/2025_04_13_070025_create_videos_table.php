@@ -17,9 +17,16 @@ return new class extends Migration
             $table->string('title', 255);       
             $table->string('name', 255);       
             $table->text('description')->nullable();
+            $table->text('transcribed_text')->nullable();
             $table->string('url', 255)->nullable();
             $table->string('path', 255)->nullable();
-            $table->string('file')->after('name');
+            $table->string('thumbnail_path')->nullable();
+
+            $table->string('audio_file')->nullable();
+            $table->string('audio_path')->nullable();
+            $table->string('audio_url')->nullable();
+
+            $table->string('file');
             $table->string('thumbnail_url', 255)->nullable();
             $table->integer('duration_seconds')->nullable();
             $table->boolean('is_premium')->default(false);

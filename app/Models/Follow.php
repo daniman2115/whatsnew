@@ -11,7 +11,7 @@ class Follow extends Model
     use HasFactory;
 
 
-    public $timestamps = false; // only 'created_at'
+    // public $timestamps = false; // only 'created_at'
     public $incrementing = false; // no auto-increment ID
     protected $primaryKey = ['follower_id', 'following_id'];
 
@@ -19,6 +19,7 @@ class Follow extends Model
         'follower_id',
         'following_id',
         'created_at',
+        'updated_at'
     ];
 
 }

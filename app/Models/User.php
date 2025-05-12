@@ -76,6 +76,14 @@ public function followers(): BelongsToMany
 
 
 
+// app/Models/User.php
+// app/Models/User.php
+public function isFollowing(User $user): bool
+{
+    return $this->following()
+        ->where('followed_id', $user->id)
+        ->exists();
+}
 
 
 
