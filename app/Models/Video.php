@@ -15,6 +15,8 @@ class Video extends Model
     use HasFactory;
 
     // protected $withCount = ['likes'];
+    protected $appends = ['comment_count'];
+
 
 
 
@@ -42,7 +44,7 @@ class Video extends Model
 
 public function comments(): HasMany
 {
-    return $this->hasMany(Comment::class);
+    return $this->hasMany(Comment::class)->with('user');
 }
 
 
@@ -63,6 +65,12 @@ public function user(): BelongsTo
     return $this->belongsTo(User::class);
 }
 
+
+
+public function getCommentCountAttribute()
+{
+    return $this->comments()->count();
+}
 
 }
 

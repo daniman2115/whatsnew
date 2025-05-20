@@ -28,7 +28,7 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'http://localhost:3000',  // React/Vue frontend
+        'http://localhost:5173',  // React/Vue frontend
         'http://127.0.0.1:3000',
         'http://localhost:8000',  // Laravel dev server
         env('APP_URL', 'http://localhost'),

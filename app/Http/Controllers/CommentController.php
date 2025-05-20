@@ -10,7 +10,7 @@ class CommentController extends Controller
 {
     public function comment(Video $video, Request $request)
     {
-        $userId = 1;
+        $userId = auth()->user()->id;
     
         $request->validate([
             'comment' => 'required|string|max:500'
@@ -31,4 +31,24 @@ class CommentController extends Controller
             'comment' => $comment
         ]);
     }
+
+
+    public function showComments(Video $video)
+    {
+        $comments = $video->comments()->with('user')->get();
+    
+        return response()->json([
+            'comments' => $comments
+        ]);
+    }
+    public function deleteComment(Comment $comment)
+    {
+        $comment->delete();
+    
+        return response()->json([
+            'message' => 'Comment deleted successfully'
+        ]);
+    }
+
 }
+

@@ -149,30 +149,31 @@ class VideoController extends Controller
         $videoUrl = url('storage/uploads/'.$location.'/'.$filename);
 
         // Call Flask API to get credibility score
-        $flaskApiUrl = env('FLASK_API_URL', 'http://localhost:5000/api/process-video');
-        $apiKey = env('FLASK_API_KEY');
+        // $flaskApiUrl = env('FLASK_API_URL', 'http://localhost:5000/api/process-video');
+        // $apiKey = env('FLASK_API_KEY');
 
-        try {
-            $response = Http::withHeaders([
-                'X-API-KEY' => $apiKey,
-                'Content-Type' => 'application/json',
-            ])->post($flaskApiUrl, [
-                'video_url' => $videoUrl,
-            ]);
+        // try {
+        //     $response = Http::withHeaders([
+        //         'X-API-KEY' => $apiKey,
+        //         'Content-Type' => 'application/json',
+        //     ])->post($flaskApiUrl, [
+        //         'video_url' => $videoUrl,
+        //     ]);
 
-            $credibilityScore = null;
-            if ($response->successful()) {
-                $responseData = $response->json();
-                $credibilityScore = $responseData['credibility_score'] ?? null;
-            }
-        } catch (\Exception $e) {
-            // Log the error but continue with video creation
-            \Log::error("Failed to get credibility score: " . $e->getMessage());
-            $credibilityScore = null;
-        }
+        //     $credibilityScore = null;
+        //     if ($response->successful()) {
+        //         $responseData = $response->json();
+        //         $credibilityScore = $responseData['credibility_score'] ?? null;
+        //     }
+        // } catch (\Exception $e) {
+        //     // Log the error but continue with video creation
+        //     \Log::error("Failed to get credibility score: " . $e->getMessage());
+        //     $credibilityScore = null;
+        // }
 
         $video = new Video();
-        $video->user_id = 1; // Use authenticated user if available
+        // $video->user_id = 1; // Use authenticated user if available
+        $video->user_id = auth()->id();
         $video->name = $filename;
         $video->title = $title;
         $video->description = $description;
@@ -180,10 +181,10 @@ class VideoController extends Controller
         $video->path = 'uploads/' . $location . '/'. $filename;
         $video->url = $videoUrl;
         
-        // Add credibility score if available
-        if ($credibilityScore !== null) {
-            $video->credibility_score = $credibilityScore;
-        }
+        // // Add credibility score if available
+        // if ($credibilityScore !== null) {
+        //     $video->credibility_score = $credibilityScore;
+        // }
 
         $video->save();
 
@@ -237,14 +238,142 @@ class VideoController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Video $video)
-    {
-        return response()->json([
-            'video' => $video,
-            'playable_url' => $video->url // Direct URL to the video file
-        ]);
-    }
 
+// public function show()
+// {
+//     // Eager load the user relationship with specific fields
+//     $videos = Video::with(['user:id,name,username,profile_picture'])
+//      ->orderBy('created_at', 'DESC')
+//      ->get();
+    
+//     $videos->transform(function($video) {
+//         // Ensure URL is properly formatted
+//         $video->url;
+        
+//         // Add fallback if user relationship doesn't exist
+//         if (!$video->user) {
+//             $video->user = (object)[
+//                 'id' => 0,
+//                 'name' => 'Deleted User',
+//                 'username' => 'deleted',
+//                 'profile_picture' => asset('images/default-avatar.png')
+//             ];
+//         }
+        
+//         return $video;
+//     });
+    
+//     return $videos;
+// }
+
+
+// public function show()
+// {
+//     $videos = Video::with([
+//         'user:id,name,username,profile_picture',
+//         'comments.user:id,name,username,profile_picture',
+//         'likes:user_id,video_id,' // Include likes
+//     ])
+//     ->orderBy('created_at', 'DESC')
+//     ->get();
+    
+//     $videos->transform(function($video) {
+//         // Ensure URL is properly formatted
+//         $video->url;
+        
+//         // Add fallback if user relationship doesn't exist
+//         if (!$video->user) {
+//             $video->user = (object)[
+//                 'id' => 0,
+//                 'name' => 'Deleted User',
+//                 'username' => 'deleted',
+//                 'profile_picture' => asset('images/default-avatar.png')
+//             ];
+//         }
+        
+//         // Format comments if they exist
+//         if ($video->comments) {
+//             $video->comments->transform(function($comment) {
+//                 if (!$comment->user) {
+//                     $comment->user = (object)[
+//                         'id' => 0,
+//                         'name' => 'Deleted User',
+//                         'username' => 'deleted',
+//                         'profile_picture' => asset('images/default-avatar.png')
+//                     ];
+//                 }
+//                 return $comment;
+//             });
+//         }
+        
+//         return $video;
+//     });
+    
+//     return $videos;
+// }
+
+
+
+
+public function show()
+{
+    $userId = auth()->id();
+    
+    $videos = Video::with([
+        'user:id,name,username,profile_picture',
+        'comments.user:id,name,username,profile_picture',
+        'likes:user_id,video_id'
+    ])
+    ->orderBy('created_at', 'DESC')
+    ->get()
+    ->map(function($video) use ($userId) {
+        $video->is_liked = $video->likes->contains('user_id', $userId);
+        return $video;
+    });
+    
+    return $videos;
+}
+
+
+
+
+
+public function showProfile($userId)
+{
+    $currentUserId = auth()->id();
+    
+    // Get user with their videos
+    $user = User::with(['videos' => function($query) {
+        $query->select('id', 'user_id', 'title', 'url', 'created_at', 'like_count');
+    }])
+    ->withCount(['followers', 'following'])
+    ->findOrFail($userId);
+    
+    // Calculate total likes
+    $totalLikes = $user->videos->sum('like_count');
+    
+    // Check if current user is following this user
+    $isFollowing = false;
+    if ($currentUserId) {
+        $isFollowing = DB::table('follows')
+            ->where('follower_id', $currentUserId)
+            ->where('following_id', $userId)
+            ->exists();
+    }
+    
+    // Format video URLs
+    $user->videos->transform(function($video) {
+        $video->url;
+        return $video;
+    });
+    
+    return response()->json([
+        'user' => $user->only(['id', 'name', 'username', 'profile_picture', 'bio', 'followers_count', 'following_count']),
+        'videos' => $user->videos,
+        'likes' => $totalLikes,
+        'is_following' => $isFollowing // Include this in the response
+    ]);
+}
     /**
      * Update the specified resource in storage.
      */
@@ -305,7 +434,7 @@ class VideoController extends Controller
             $videos = Video::whereIn('user_id', $followingIds)
                             ->orderBy('created_at', 'desc')
                             ->with('user') // eager load user info
-                            ->get(10);
+                            ->get();
     
             return response()->json($videos);
         

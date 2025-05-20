@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthenticationController;
 // use App\Http\Controllers\HomeController;
 // use App\Http\Controllers\SignupController;
 // use App\Http\Controllers\LoginController;
+use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\VideoController;
@@ -28,6 +29,14 @@ Route::post('/register/store', [AuthentController::class, 'register'])->name('re
 Route::get('/login', [AuthentController::class, 'signin'])->name('login');
 
 Route::post('/login/store', [AuthentController::class, 'login'])->name('login.store');
+
+
+
+    Route::controller(LoginController::class)->group(function(){
+        Route::get('/auth/google', 'googleLogin')->name('google.login');
+        Route::get('/auth/google/callback', 'googleAuthentication');
+    });
+
 
 
 Route::middleware('auth')->group(function () {

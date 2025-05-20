@@ -46,6 +46,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'remember_token',
     ];
 
+
+
     /**
      * Get the attributes that should be cast.
      *
@@ -81,8 +83,15 @@ public function followers(): BelongsToMany
 public function isFollowing(User $user): bool
 {
     return $this->following()
-        ->where('followed_id', $user->id)
+        ->where('following_id', $user->id)
         ->exists();
+}
+
+
+
+public function isFollowedBy(User $user)
+{
+    return $this->followers()->where('follower_id', $user->id)->exists();
 }
 
 

@@ -26,12 +26,15 @@ Route::middleware('auth:sanctum')->group(function () {
         
         Route::get('/list', [VideoController::class,"index"]);
         
-        Route::get('/show/{video}', [VideoController::class,"show"]);
+        Route::get('/show', [VideoController::class,"show"]);
+        // Route::get('/show/{id}', [VideoController::class,"showProfile"]);
 
         
         Route::post('/like/{video}', [LikeController::class,"like"]);
+        Route::post('/unlike/{video}', [LikeController::class,"unLike"]);
         
         Route::post('/comment/{video}', [CommentController::class,"comment"]);
+        Route::get('/showcomments/{video}', [CommentController::class,"showComments"]);
 
         Route::post('/follow/{user}', [FollowController::class,"follow"]);
         Route::post('/unfollow/{user}', [FollowController::class,"unfollow"]);
@@ -41,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/feed/discover', [VideoController::class, 'discover']);
 
         Route::get('/profile/{id}', [ProfileController::class,"showProfile"]);
+        // Route::get('/profile/{user}', [ProfileController::class, 'show']);
 
         Route::get('/profile/followers/{id}', [FollowController::class,"showFollowers"]);
         Route::get('/profile/following/{id}', [FollowController::class,"showFollowing"]);
