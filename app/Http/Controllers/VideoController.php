@@ -444,7 +444,7 @@ public function showProfile($userId)
 
 
     // Discover feed - maybe trending or hashtags, simplified here as latest posts
-    public function discover()
+    public function discover($id)
     {
         $posts = Video::with('user')->inRandomOrder()->take(20)->get();
         return response()->json($posts);

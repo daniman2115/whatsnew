@@ -41,13 +41,16 @@ Route::middleware('auth:sanctum')->group(function () {
         
         Route::get('/feed/for-you', [VideoController::class, 'forYou']);
         Route::get('/feed/following/{id}', [VideoController::class, 'following']);
-        Route::get('/feed/discover', [VideoController::class, 'discover']);
+        Route::get('/feed/discover/{id}', [VideoController::class, 'discover']);
 
         Route::get('/profile/{id}', [ProfileController::class,"showProfile"]);
+        Route::post('/edit/{id}', [ProfileController::class,"editProfile"]);
         // Route::get('/profile/{user}', [ProfileController::class, 'show']);
 
         Route::get('/profile/followers/{id}', [FollowController::class,"showFollowers"]);
         Route::get('/profile/following/{id}', [FollowController::class,"showFollowing"]);
+
+        Route::get('/showtotallikes/{id}', [LikeController::class, 'showUserLikes']);
 
         Route::post('/videos/search', [VideoController::class, 'search']);
 

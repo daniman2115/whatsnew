@@ -44,6 +44,14 @@ class FollowController extends Controller
 
         return response()->json($following);
     }
+
+
+
+    
+
+
+
+
     /**
      * Update the specified resource in storage.
      */

@@ -55,4 +55,15 @@ public function unlike(Video $video)
         ]);
     }
 
+
+
+    public function showUserLikes($id)
+    {
+        $likes = Like::where('user_id', $id)->with('video')->count();
+
+        return response()->json([
+            'likes' => $likes
+        ]);
+    }
+
 }

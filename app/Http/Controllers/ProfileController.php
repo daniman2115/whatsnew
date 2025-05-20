@@ -48,4 +48,22 @@ public function showProfile($id)
 //         'likes' => $user->videos()->sum('likes_count')
 //     ]);
 // }
+
+
+public function editProfile(Request $request)
+{
+    $user = auth()->user();
+    $user->update([
+        'name' => $request->input('name'),
+        'email' => $request->input('email'),
+        'username' => $request->input('username'),
+        'bio' => $request->input('bio'),
+        // 'profile_picture' => $request->input('profile_picture'),
+    ]);
+
+    return response()->json([
+        'message' => 'Profile updated successfully',
+        'user' => $user
+    ]);
+    }
 }
