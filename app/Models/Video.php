@@ -25,6 +25,7 @@ class Video extends Model
         'path',
         'title',
         'thumbnail_path',
+        'thumbnail_url',
         'description',
         'url',
         'file',
@@ -47,17 +48,6 @@ public function comments(): HasMany
     return $this->hasMany(Comment::class)->with('user');
 }
 
-
-// app/Models/Video.php
-// protected static function booted()
-// {
-//     static::updated(function ($video) {
-//         if ($video->isDirty('likes_count')) {
-//             $video->like_count = $video->likes_count;
-//             $video->saveQuietly(); // Avoid recursive updates
-//         }
-//     });
-// }
 
 
 public function user(): BelongsTo

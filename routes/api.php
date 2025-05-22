@@ -14,13 +14,13 @@ Route::post('/login', [AuthentController::class, 'login']);
 
 
 
+Route::post('/forget', [AuthentController::class, 'forget'])->name('auth.submitforgetpassword');
 // Protected routes (require Sanctum token)
 Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthentController::class, 'logout']);
         Route::get('/user', [AuthentController::class, 'user']);
-        Route::post('/forgot-password', [AuthentController::class, 'submitForgetPasswordForm'])->name('auth.submitforgetpassword');
 
-        Route::post('/reset-password', [AuthentController::class, 'submitResetPasswordForm'])->name('auth.submitresetpassword');
+        Route::post('/reset-password', [AuthentController::class, 'reset'])->name('auth.submitresetpassword');
         
         Route::post('/upload', [VideoController::class,"uploadChunk"]);
         
@@ -44,23 +44,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/feed/discover/{id}', [VideoController::class, 'discover']);
 
         Route::get('/profile/{id}', [ProfileController::class,"showProfile"]);
+        Route::get('/me', [ProfileController::class,"showProfile"]);
         Route::post('/edit/{id}', [ProfileController::class,"editProfile"]);
         // Route::get('/profile/{user}', [ProfileController::class, 'show']);
 
         Route::get('/profile/followers/{id}', [FollowController::class,"showFollowers"]);
         Route::get('/profile/following/{id}', [FollowController::class,"showFollowing"]);
 
+        Route::post('/edit/{id}', [AuthentController::class, 'updateProfile']);
+
         Route::get('/showtotallikes/{id}', [LikeController::class, 'showUserLikes']);
 
         Route::post('/videos/search', [VideoController::class, 'search']);
 
-
-        // Route::post('/check-fake-news/{id}', [VideoController::class, 'checkVideo']);
-
-        // Route::post('/recommend-videos', [VideoController::class, 'getRecommendedVideos']);
-
-        
-        // Route::post('/extractaudio', [VideoController::class, 'extractAudio']);
 
         Route::post('/extract-audio', [AudioExtractionController::class, 'extractAudio']);
 

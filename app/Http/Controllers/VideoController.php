@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Video;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -38,56 +39,6 @@ class VideoController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */    
-    // public function store(Request $request)
-    // {
-    //     $request->validate([
-    //         'title' => 'required|string|max:255',
-    //         'description' => 'nullable|string',
-    //         'file' => 'required|file|mimes:mp4,mov,avi|max:102400',
-    //         'name' => 'required|string|max:255', 
-    //     ]);
-
-    //     try {
-    //         $file = $request->file('file');
-    //         $customName = $request->name;
-
-    //         // Create safe filename with extension
-    //         $filename = Str::slug($customName).'.'.$file->getClientOriginalExtension();
-            
-    //         // Store in storage/app/public/videos
-    //         $path = $file->storeAs('videos', $filename);
-            
-    //         $video = new Video();
-    //         $video->user_id = 1; // Use authenticated user if available
-    //         $video->name = $customName;
-    //         $video->title = $request->title;
-    //         $video->description = $request->description;
-    //         $video->file = $filename;
-    //         $video->path = $path;
-    //         $video->url = Storage::url($path);
-    //         $video->save();
-
-    //         return response()->json([
-    //             'message' => 'Video uploaded successfully',
-    //             'video' => $video,
-    //             'url' => $video->url
-    //         ]);
-
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'message' => 'File upload failed',
-    //             'error' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
-
-
-
-
-
 
 
     public function uploadChunk(Request $request)
@@ -98,8 +49,7 @@ class VideoController extends Controller
     $description = $request->input('description');
     $chunkIndex = $request->input('chunk');
     $totalChunks = $request->input('totalChunks');
-    $location = $request->input('location');
-    // Sanitize location to prevent directory traversal
+    $location = $request->input('location', 'testuploads');     // Sanitize location to prevent directory traversal
     $location = str_replace(['..', '/'], '', $location);
     $tempDir = storage_path('app/temp_chunks/' . $filename);
     $finalDir = storage_path('app/public/uploads/' . $location);
@@ -148,31 +98,8 @@ class VideoController extends Controller
         // Get the full URL to the video
         $videoUrl = url('storage/uploads/'.$location.'/'.$filename);
 
-        // Call Flask API to get credibility score
-        // $flaskApiUrl = env('FLASK_API_URL', 'http://localhost:5000/api/process-video');
-        // $apiKey = env('FLASK_API_KEY');
-
-        // try {
-        //     $response = Http::withHeaders([
-        //         'X-API-KEY' => $apiKey,
-        //         'Content-Type' => 'application/json',
-        //     ])->post($flaskApiUrl, [
-        //         'video_url' => $videoUrl,
-        //     ]);
-
-        //     $credibilityScore = null;
-        //     if ($response->successful()) {
-        //         $responseData = $response->json();
-        //         $credibilityScore = $responseData['credibility_score'] ?? null;
-        //     }
-        // } catch (\Exception $e) {
-        //     // Log the error but continue with video creation
-        //     \Log::error("Failed to get credibility score: " . $e->getMessage());
-        //     $credibilityScore = null;
-        // }
 
         $video = new Video();
-        // $video->user_id = 1; // Use authenticated user if available
         $video->user_id = auth()->id();
         $video->name = $filename;
         $video->title = $title;
@@ -181,10 +108,7 @@ class VideoController extends Controller
         $video->path = 'uploads/' . $location . '/'. $filename;
         $video->url = $videoUrl;
         
-        // // Add credibility score if available
-        // if ($credibilityScore !== null) {
-        //     $video->credibility_score = $credibilityScore;
-        // }
+
 
         $video->save();
 
@@ -201,117 +125,6 @@ class VideoController extends Controller
 
     return response()->json(['message' => 'Chunk uploaded successfully.']);
 }
-//     private function processVideoWithFlask(Video $video)
-// {
-//     try {
-//         $client = new Client([
-//             'timeout' => 120,
-//             'connect_timeout' => 30,
-//             'verify' => false // Only for development!
-//         ]);
-
-//         $response = $client->post(config('services.flask.api_url').'/api/process-video', [
-//             'json' => [
-//                 'video_url' => $video->url,
-//                 'video_id' => $video->id
-//             ],
-//             'headers' => [
-//                 'X-API-KEY' => config('services.flask.api_key'),
-//                 'Accept' => 'application/json'
-//             ]
-//         ]);
-
-//         $body = json_decode($response->getBody(), true);
-        
-//         if (!isset($body['status']) || $body['status'] !== 'success') {
-//             throw new \Exception("Flask API returned unsuccessful status");
-//         }
-
-//         return $body;
-
-//     } catch (\GuzzleHttp\Exception\RequestException $e) {
-//         Log::error("Flask connection failed: " . $e->getMessage());
-//         throw new \Exception("Video processing service unavailable");
-//     }
-// }
-
-    /**
-     * Display the specified resource.
-     */
-
-// public function show()
-// {
-//     // Eager load the user relationship with specific fields
-//     $videos = Video::with(['user:id,name,username,profile_picture'])
-//      ->orderBy('created_at', 'DESC')
-//      ->get();
-    
-//     $videos->transform(function($video) {
-//         // Ensure URL is properly formatted
-//         $video->url;
-        
-//         // Add fallback if user relationship doesn't exist
-//         if (!$video->user) {
-//             $video->user = (object)[
-//                 'id' => 0,
-//                 'name' => 'Deleted User',
-//                 'username' => 'deleted',
-//                 'profile_picture' => asset('images/default-avatar.png')
-//             ];
-//         }
-        
-//         return $video;
-//     });
-    
-//     return $videos;
-// }
-
-
-// public function show()
-// {
-//     $videos = Video::with([
-//         'user:id,name,username,profile_picture',
-//         'comments.user:id,name,username,profile_picture',
-//         'likes:user_id,video_id,' // Include likes
-//     ])
-//     ->orderBy('created_at', 'DESC')
-//     ->get();
-    
-//     $videos->transform(function($video) {
-//         // Ensure URL is properly formatted
-//         $video->url;
-        
-//         // Add fallback if user relationship doesn't exist
-//         if (!$video->user) {
-//             $video->user = (object)[
-//                 'id' => 0,
-//                 'name' => 'Deleted User',
-//                 'username' => 'deleted',
-//                 'profile_picture' => asset('images/default-avatar.png')
-//             ];
-//         }
-        
-//         // Format comments if they exist
-//         if ($video->comments) {
-//             $video->comments->transform(function($comment) {
-//                 if (!$comment->user) {
-//                     $comment->user = (object)[
-//                         'id' => 0,
-//                         'name' => 'Deleted User',
-//                         'username' => 'deleted',
-//                         'profile_picture' => asset('images/default-avatar.png')
-//                     ];
-//                 }
-//                 return $comment;
-//             });
-//         }
-        
-//         return $video;
-//     });
-    
-//     return $videos;
-// }
-
 
 
 
@@ -491,54 +304,6 @@ public function showProfile($userId)
         ]);
     }
 }
-
-
-
-
-
-
-// public function generateThumbnail(Video $video)
-// {
-//     try {
-//         // Get the video path from the database record
-//         $videoPath = storage_path('app/public/' . $video->path);
-        
-//         // Set thumbnail paths
-//         $thumbnailDir = storage_path('app/public/thumbnails');
-//         $thumbnailFilename = $video->id . '_thumbnail.jpg';
-//         $thumbnailPath = $thumbnailDir . '/' . $thumbnailFilename;
-//         $relativeThumbnailPath = 'thumbnails/' . $thumbnailFilename;
-
-//         // Create directory if it doesn't exist
-//         if (!file_exists($thumbnailDir)) {
-//             mkdir($thumbnailDir, 0755, true);
-//         }
-
-//         // Generate thumbnail using FFmpegService
-//         $this->ffmpegService->extractThumbnail($videoPath, $thumbnailPath, 10);
-
-//         // Update the video record with thumbnail path
-//         $video->update(['thumbnail_path' => $relativeThumbnailPath]);
-
-//         return response()->json([
-//             'success' => true,
-//             'message' => 'Thumbnail generated successfully',
-//             'thumbnail_path' => $relativeThumbnailPath
-//         ]);
-
-//     } catch (\Exception $e) {
-//         return response()->json([
-//             'success' => false,
-//             'error' => 'Thumbnail generation failed',
-//             'message' => $e->getMessage(),
-//             'details' => [
-//                 'video_id' => $video->id,
-//                 'video_path' => $video->path ?? 'Not found',
-//                 'attempted_thumbnail_path' => $relativeThumbnailPath ?? 'Not generated'
-//             ]
-//         ], 500);
-//     }
-// }
 
 
 
